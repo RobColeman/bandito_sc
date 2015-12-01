@@ -27,7 +27,7 @@ class BayesianUCBLearner(val bandits: Vector[BernoulliBandit],
   def successes: Int = this.banditModels.map{ _.successes }.sum
 
   private def selectNextBanditToPlay: BetaBinomialBanditModel = {
-    val banditModelScores: Vector[Double] = banditModels.map{ _.computeUCB }
+    val banditModelScores: Vector[Double] = banditModels.map{ _.upperConfidenceBound }
     val banditToPlay: Int = util.selectHighestScore(banditModelScores)
     this.banditModels(banditToPlay)
   }
@@ -49,7 +49,9 @@ object BayesianUCBLearnerApp {
   def main(args: Array[String]): Unit = {
 
     // val probs = Vector(0.01,0.05,0.1,0.2,0.4,0.5)
-    val probs = Vector(0.001,0.005,0.01,0.05,0.1)
+    // val probs = Vector(0.001,0.005,0.01,0.05,0.1)
+    //val probs = Vector(0.0005,0.001,0.005,0.01,0.05)
+    val probs = Vector(0.0001,0.0005,0.001,0.005,0.01)
 
     val bandits: Vector[BernoulliBandit] = probs.map( BernoulliBandit )
 

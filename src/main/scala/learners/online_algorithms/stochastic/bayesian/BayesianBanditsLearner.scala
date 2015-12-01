@@ -48,7 +48,9 @@ object BayesianBanditsLearnerApp {
   def main(args: Array[String]): Unit = {
 
     // val probs = Vector(0.01,0.05,0.1,0.2,0.4,0.5)
-    val probs = Vector(0.001,0.005,0.01,0.05,0.1)
+    // val probs = Vector(0.001,0.005,0.01,0.05,0.1)
+    // val probs = Vector(0.0005,0.001,0.005,0.01,0.05)
+    val probs = Vector(0.0001,0.0005,0.001,0.005,0.01)
 
     val bandits: Vector[BernoulliBandit] = probs.map( BernoulliBandit )
 
