@@ -2,8 +2,9 @@ package learners.online_algorithms.stochastic.bayesian
 
 import banditModels.BetaBinomialBanditModel
 import bandits.BernoulliBandit
+import metrics.BernoulliRegret
 
-abstract class BaseBayesianBanditLearner {
+abstract class BaseBayesianBanditLearner extends BernoulliRegret {
 
   val bandits: Vector[BernoulliBandit]
   val credibleInterval: Double
@@ -14,8 +15,8 @@ abstract class BaseBayesianBanditLearner {
     BetaBinomialBanditModel(t._2, t._1, credibleInterval)
   }
 
-  def trials: Int = this.banditModels.map{ _.trials }.sum
-  def successes: Int = this.banditModels.map{ _.successes }.sum
+  def trials: Long = this.banditModels.map{ _.trials }.sum
+  def successes: Long = this.banditModels.map{ _.successes }.sum
 
   def getScores: Vector[Double]
 
@@ -25,12 +26,14 @@ abstract class BaseBayesianBanditLearner {
   }
 
   def play: Unit = selectNextBanditToPlay.pull
+  def play(n: Long): Unit = this.play(n.toInt)
   def play(n: Int): Unit = {
     var i = 0
     for (i <- 0 until n) {
       this.play
     }
     println(s"")
+    println(s"Regret: ${this.computeRegret}")
     this.banditModels.foreach{ _.print }
   }
 
