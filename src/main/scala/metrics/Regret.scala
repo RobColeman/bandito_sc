@@ -8,8 +8,6 @@ trait BernoulliRegret {
 
   private val bestProb: Double = this.bandits.map{ _.p }.max
 
-  def computeRegret: Double = {
-    this.bandits.map{ b =>  (bestProb * b.N) - (b.p * b.N) }.sum
-  }
+  def computeRegret: Double = this.bandits.map{ b =>  (bestProb * b.N) - (b.p * b.N) }.sum
 
 }
