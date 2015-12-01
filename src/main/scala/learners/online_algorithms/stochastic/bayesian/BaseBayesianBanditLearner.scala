@@ -3,7 +3,7 @@ package learners.online_algorithms.stochastic.bayesian
 import banditModels.BetaBinomialBanditModel
 import bandits.BernoulliBandit
 
-abstract class BaseBayesianBandit {
+abstract class BaseBayesianBanditLearner {
 
   val bandits: Vector[BernoulliBandit]
   val credibleInterval: Double
