@@ -1,6 +1,5 @@
 package learners.online_algorithms.stochastic.bayesian
 
-import banditModels.BetaBinomialBanditModel
 import bandits.BernoulliBandit
 
 object BayesianUCBLearner {
@@ -14,7 +13,7 @@ object BayesianUCBLearner {
 }
 
 class BayesianUCBLearner(val bandits: Vector[BernoulliBandit],
-                         val credibleInterval: Double = BayesianBanditsLearner.defaultCredibleInterval) extends BaseBayesianBandit {
+                         val credibleInterval: Double = BayesianBanditsLearner.defaultCredibleInterval) extends BaseBayesianBanditLearner {
 
   def getScores: Vector[Double] = banditModels.map{ _.upperConfidenceBound }
 
