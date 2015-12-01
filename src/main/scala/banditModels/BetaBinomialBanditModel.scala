@@ -3,6 +3,7 @@ package banditModels
 import bandits.BernoulliBandit
 import breeze.stats.distributions.Binomial
 import org.apache.commons.math3.distribution.BetaDistribution
+import math.{HighestPosteriorDensity,CentralDensity}
 
 abstract class BaseBetaBinomialBanditModel {
   val id: Int
@@ -22,12 +23,8 @@ abstract class BaseBetaBinomialBanditModel {
   def samplePosterior: Double = this.betaPrior.sample()
 
   private def computePosteriorHPDBounds: (Double, Double) = {
-    // TODO: fix this, numerically compute HPD, not central region
-    val posterior: BetaDistribution = this.betaPrior
-    val alpha = (1.0 - credibleInterval) / 2.0
-    val lower: Double = posterior.inverseCumulativeProbability( alpha )
-    val upper: Double = posterior.inverseCumulativeProbability( 1 - alpha )
-    (lower,upper)
+    // TODO: fix this, numerically compute true HPD, not symetric region around mode
+    CentralDensity.CentralDensityRegion(this.betaPrior)
   }
   def lowerConfidenceBound: Double = this.computePosteriorHPDBounds._1
   def upperConfidenceBound: Double = this.computePosteriorHPDBounds._2
