@@ -40,7 +40,7 @@ object BayesianBanditsLearnerApp {
 
     learner.play(10000 - learner.trials)
 
-    learner.play(20000 - learner.trials)
+    learner.play(50000 - learner.trials)
   }
 }
 

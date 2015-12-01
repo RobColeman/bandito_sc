@@ -22,6 +22,7 @@ abstract class BaseBetaBinomialBanditModel {
   def samplePosterior: Double = this.betaPrior.sample()
 
   private def computePosteriorHPDBounds: (Double, Double) = {
+    // TODO: fix this, numerically compute HPD, not central region
     val posterior: BetaDistribution = this.betaPrior
     val alpha = (1.0 - credibleInterval) / 2.0
     val lower: Double = posterior.inverseCumulativeProbability( alpha )
