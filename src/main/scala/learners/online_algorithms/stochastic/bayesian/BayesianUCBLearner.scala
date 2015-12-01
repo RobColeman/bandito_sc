@@ -13,34 +13,10 @@ object BayesianUCBLearner {
 
 }
 
-
 class BayesianUCBLearner(val bandits: Vector[BernoulliBandit],
-                         val credibleInterval: Double = BayesianBanditsLearner.defaultCredibleInterval) {
+                         val credibleInterval: Double = BayesianBanditsLearner.defaultCredibleInterval) extends BaseBayesianBandit {
 
-  val nBandits: Int = bandits.length
-
-  val banditModels: Vector[BetaBinomialBanditModel] = bandits.zipWithIndex.map{ t =>
-    BetaBinomialBanditModel(t._2, t._1, credibleInterval)
-  }
-
-  def trials: Int = this.banditModels.map{ _.trials }.sum
-  def successes: Int = this.banditModels.map{ _.successes }.sum
-
-  private def selectNextBanditToPlay: BetaBinomialBanditModel = {
-    val banditModelScores: Vector[Double] = banditModels.map{ _.upperConfidenceBound }
-    val banditToPlay: Int = util.selectHighestScore(banditModelScores)
-    this.banditModels(banditToPlay)
-  }
-
-  def play: Unit = selectNextBanditToPlay.pull
-  def play(n: Int): Unit = {
-    var i = 0
-    for (i <- 0 until n) {
-      this.play
-    }
-    println(s"")
-    this.banditModels.foreach{ _.print }
-  }
+  def getScores: Vector[Double] = banditModels.map{ _.upperConfidenceBound }
 
 }
 
@@ -66,5 +42,7 @@ object BayesianUCBLearnerApp {
     learner.play(5000 - learner.trials)
 
     learner.play(10000 - learner.trials)
+
+    learner.play(20000 - learner.trials)
   }
 }
