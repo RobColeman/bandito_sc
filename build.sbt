@@ -11,5 +11,6 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest"          % scalaTestVersion  % "test",
   "org.scalanlp"  %% "breeze"             % breezeVersion,
   "org.scalanlp"  %% "breeze-natives"     % breezeVersion,
-  "org.apache.commons" % "commons-math3"  % "3.3"
+  "org.apache.commons" % "commons-math3"  % "3.3",
+  "gov.sandia.foundry" % "cognitive-foundry" % "3.3.2"
 )
