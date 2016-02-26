@@ -4,6 +4,7 @@
 # sbt specific
 .cache
 .history
+.csv
 .lib/
 .idea/
 dist/*
@@ -12,6 +13,7 @@ lib_managed/
 src_managed/
 project/boot/
 project/plugins/project/
+src/main/resources/
 
 # Scala-IDE specific
 .scala_dependencies
