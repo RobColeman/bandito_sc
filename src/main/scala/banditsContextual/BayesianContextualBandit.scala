@@ -1,12 +1,12 @@
-package bandits
+package banditsContextual
 
 import classifiers.multiclass.MulticlassClassifier
 import org.apache.spark.ml.MLPClassifier
-import org.apache.spark.sql.Row
-import org.apache.spark.sql.{DataFrame, SQLContext}
-import org.apache.spark.{SparkContext, SparkConf}
 import org.apache.spark.ml.classification.MultilayerPerceptronClassifier
 import org.apache.spark.mllib.linalg.Vector
+import org.apache.spark.sql.{DataFrame, Row, SQLContext}
+import org.apache.spark.{SparkConf, SparkContext}
+
 import scala.util.Random
 
 

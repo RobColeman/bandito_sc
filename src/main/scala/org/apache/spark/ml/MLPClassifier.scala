@@ -1,6 +1,6 @@
 package org.apache.spark.ml
 
-import bandits.BayesianContextualBandit
+import banditsContextual.BayesianContextualBandit
 import classifiers.multiclass.MulticlassClassifier
 import org.apache.spark.ml.ann.FeedForwardTopology
 import org.apache.spark.ml.classification.MultilayerPerceptronClassificationModel
