@@ -1,38 +1,13 @@
 package banditsContextual
 
 import classifiers.multiclass.MulticlassClassifier
-import org.apache.spark.ml.MLPClassifier
-import org.apache.spark.ml.classification.MultilayerPerceptronClassifier
+import org.apache.spark.ml.{MCLogisticRegression, MLPClassifier}
 import org.apache.spark.mllib.linalg.Vector
-import org.apache.spark.sql.{DataFrame, Row, SQLContext}
-import org.apache.spark.{SparkConf, SparkContext}
-
+import org.apache.spark.sql.{DataFrame, Row}
 import scala.util.Random
 
 
-object MLPBanditApp {
-  def main(args: Array[String]): Unit = {
-    val appName = "BayesianMLPBanitTest"
-    val conf = new SparkConf().setAppName(appName).setMaster("local[16]")
-    val sc = new SparkContext(conf)
-    val sqlContext = new SQLContext(sc)
 
-    val data = sqlContext.read
-      .format("libsvm")
-      .load("/Users/rcoleman/spark/data/mllib/sample_multiclass_classification_data.txt")
-
-    val params: Map[String, Any] = BayesianContextualBandit.PARAMS
-
-    val splits: Array[DataFrame] = data.randomSplit(Array(0.6, 0.4), seed = 1234L)
-    val train: DataFrame = splits(0)
-    val test: DataFrame = splits(1)
-
-    // train the MLP bandit model
-    val banditModel: BayesianContextualBandit = BayesianContextualBandit.train(train, "mlp", params)
-    val recommendations = test.map(BayesianContextualBandit.reportRecommendation(banditModel))
-    recommendations.collect().foreach(println)
-  }
-}
 
 object BayesianContextualBandit {
 
@@ -45,15 +20,27 @@ object BayesianContextualBandit {
   val BLOCK_SIZE: Int = 128
   def FLATPAYOFF(classes: Int): Array[Double] = Array.fill[Double](classes)(1.0 / classes)
 
+  def apply(classifier: MulticlassClassifier,
+            params: Map[String,Any] = this.PARAMS,
+            payoff: Option[Array[Double]] = None): BayesianContextualBandit = {
+
+    val p: Array[Double] = payoff match {
+      case None => BayesianContextualBandit.FLATPAYOFF(params("num_classes").asInstanceOf[Int])
+      case Some(nonUniformPayoff) => nonUniformPayoff
+    }
+    new BayesianContextualBandit(classifier, p)
+  }
+
   def train(trainingData: DataFrame,
             classifierType: String = this.CLASSIFIER,
             params: Map[String,Any] = this.PARAMS,
             payoff: Option[Array[Double]] = None,
             seed: Long = this.SEED): BayesianContextualBandit = {
 
-    val classifier = classifierType match {
-      case "mlp" => this.trainMLP(trainingData, params)
-      case _ => this.trainMLP(trainingData, params)
+    val classifier: MulticlassClassifier = classifierType match {
+      case "logistic" => MCLogisticRegression.train(trainingData, params)
+      case "mlp" => MLPClassifier.train(trainingData, params)
+      case _ => MLPClassifier.train(trainingData, params)
     }
 
     val p: Array[Double] = payoff match {
@@ -62,19 +49,6 @@ object BayesianContextualBandit {
     }
 
     new BayesianContextualBandit(classifier, p)
-  }
-
-  def trainValidate(trainingData: DataFrame): BayesianContextualBandit = {
-    ???
-  }
-
-  private def trainMLP(trainingData: DataFrame, params: Map[String,Any]): MLPClassifier = {
-    val trainer = new MultilayerPerceptronClassifier()
-      .setLayers(params("layers").asInstanceOf[Array[Int]])
-      .setBlockSize(params.getOrElse("block_size", this.BLOCK_SIZE).asInstanceOf[Int])
-      .setSeed(params.getOrElse("seed",this.SEED).asInstanceOf[Long])
-      .setMaxIter(params.getOrElse("max_iterations",this.MAX_ITERATIONS).asInstanceOf[Int])
-    new MLPClassifier(trainer.fit(trainingData))
   }
 
   def reportRecommendation(banditModel: BayesianContextualBandit)(row: Row): MLPBanditRecommendation = {
