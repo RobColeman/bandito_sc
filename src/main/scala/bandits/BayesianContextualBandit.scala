@@ -17,8 +17,11 @@ object MLPBanditApp {
     val sc = new SparkContext(conf)
     val sqlContext = new SQLContext(sc)
 
-    val data = sqlContext.read.format("libsvm").load("/Users/rcoleman/spark/data/mllib/sample_multiclass_classification_data.txt")
-    val params: Map[String, Any] = BayesianContextualBandit.PARAMS ++ Map("num_classes", 3)
+    val data = sqlContext.read
+      .format("libsvm")
+      .load("/Users/rcoleman/spark/data/mllib/sample_multiclass_classification_data.txt")
+
+    val params: Map[String, Any] = BayesianContextualBandit.PARAMS
 
     val splits: Array[DataFrame] = data.randomSplit(Array(0.6, 0.4), seed = 1234L)
     val train: DataFrame = splits(0)
@@ -34,7 +37,8 @@ object MLPBanditApp {
 object BayesianContextualBandit {
 
   val CLASSIFIER = "mlp"
-  val PARAMS: Map[String,Any] = Map("layers", Array[Int](4, 5, 4, 3))
+  val PARAMS: Map[String,Any] = Map("layers" -> Array[Int](4, 5, 4, 3),
+                                    "num_classes" -> 3)
   val MLP_DEFAULT = true
   val MAX_ITERATIONS: Int = 100
   val SEED: Long = 1234L
@@ -106,6 +110,33 @@ class BayesianContextualBandit(val classifier: MulticlassClassifier, val payoff:
   }
 
   def recommend(row: Row): Int = this.recommend(row.getAs[Vector](1))
+
+  /**
+    *
+    * @param features
+    * @param exclude indicies to exclude from recommendations (adds recently seen)
+    * @return
+    */
+  def recommend(features: Vector, exclude: Array[Int]): Int = {
+    val (expPayoff, idxMap): (Seq[Double], Seq[(Int, Int)]) = this.computeExpectedPayoff(features)
+      .zipWithIndex
+      .filterNot{ case (p, idx) => exclude.contains(idx) }
+      .zipWithIndex
+      .map{ case ((p,origIdx),newIdx) =>  (p,(newIdx,origIdx)) }.unzip
+
+    val newToOldIdx: Map[Int, Int] = idxMap.toMap
+
+    val cumSum: Seq[(Double, Int)] = expPayoff.scanLeft(0.0)(_ + _).tail.zipWithIndex
+    val r: Double = Random.nextDouble()
+
+    val recIdx = cumSum.find{ case (cp,idx) => cp > r } match {
+      case Some(cumPrIdx) => cumPrIdx._2
+      case None => -1
+    }
+    newToOldIdx(recIdx)
+  }
+
+  def recommend(row: Row, exclude: Array[Int]): Int = this.recommend(row.getAs[Vector](1), exclude)
 
 }
 
