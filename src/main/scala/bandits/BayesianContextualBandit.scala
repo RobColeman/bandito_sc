@@ -8,6 +8,7 @@ import org.apache.spark.sql.{DataFrame, Row}
 import scala.util.Random
 
 
+
 object BayesianContextualBandit {
 
   val MLP_DEFAULT = true
@@ -41,8 +42,8 @@ object BayesianContextualBandit {
   def reportRecommendation(banditModel: BayesianContextualBandit)(row: Row): MLPBanditRecommendation = {
     val label: Double = row.getAs[Double](0)
     val features: Vector = row.getAs[Vector](1)
-    val posteriorProb: Array[Double] = banditModel.computePosteriorProb(features)
-    val posteriorPayoff: Array[Double] = banditModel.computePosteriorPayoff(features)
+    val posteriorProb: Array[Double] = banditModel.classifier.predict(features)
+    val posteriorPayoff: Array[Double] = banditModel.computeExpectedPayoff(features)
     val recommendation: Int = banditModel.recommend(row)
     MLPBanditRecommendation(label, recommendation, features.toArray.toSeq, posteriorProb.toSeq,posteriorPayoff.toSeq)
   }
@@ -51,26 +52,8 @@ object BayesianContextualBandit {
 
 class BayesianContextualBandit(val classifier: MulticlassClassifier, val payoff: Array[Double]) extends Serializable {
 
-  def computePosteriorProb(features: Vector): Array[Double] = {
-    val response = this.classifier.predict(features)
-    val min = response.min
-    val shifted = if (min < 0) {
-      response.map{ r => r - min}
-    } else {
-      response
-    }
-    val sum = shifted.sum
-    shifted.map{ r =>
-      if (sum == 0) {
-        0.0
-      } else {
-        r / sum
-      }
-    }
-  }
-
-  def computePosteriorPayoff(features: Vector, normalized: Boolean = true): Array[Double] = {
-    val unNomredPostPayoff: Array[Double] = this.computePosteriorProb(features).zip(payoff).map{ t => t._1 * t._2 }
+  def computeExpectedPayoff(features: Vector, normalized: Boolean = true): Array[Double] = {
+    val unNomredPostPayoff: Array[Double] = this.classifier.predict(features).zip(payoff).map{ t => t._1 * t._2 }
     if (normalized) {
       val sum: Double = unNomredPostPayoff.toArray.sum
       unNomredPostPayoff.map{ x => if (x == 0.0) x else x / sum }
@@ -80,7 +63,7 @@ class BayesianContextualBandit(val classifier: MulticlassClassifier, val payoff:
   }
 
   def recommend(features: Vector): Int = {
-    val cumSum: Array[(Double, Int)] = this.computePosteriorPayoff(features).scanLeft(0.0)(_ + _).tail.zipWithIndex
+    val cumSum: Array[(Double, Int)] = this.computeExpectedPayoff(features).scanLeft(0.0)(_ + _).tail.zipWithIndex
     val r: Double = Random.nextDouble()
     cumSum.find{ case (cp,idx) => cp > r } match {
       case Some(cumPrIdx) => cumPrIdx._2
