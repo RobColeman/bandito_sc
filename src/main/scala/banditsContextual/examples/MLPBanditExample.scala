@@ -1,5 +1,6 @@
-package banditsContextual
+package banditsContextual.examples
 
+import banditsContextual.BayesianContextualBandit
 import org.apache.spark.sql.{DataFrame, SQLContext}
 import org.apache.spark.{SparkConf, SparkContext}
 

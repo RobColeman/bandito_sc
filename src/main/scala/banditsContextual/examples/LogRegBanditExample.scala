@@ -1,7 +1,8 @@
-package banditsContextual
+package banditsContextual.examples
 
+import banditsContextual.BayesianContextualBandit
 import org.apache.spark.sql.{DataFrame, SQLContext}
-import org.apache.spark.{SparkContext, SparkConf}
+import org.apache.spark.{SparkConf, SparkContext}
 
 /**
   * Created by rcoleman on 2/29/16.
@@ -18,7 +19,7 @@ object LogRegBanditExample {
       .load("/Users/rcoleman/spark/data/mllib/sample_multiclass_classification_data.txt")
 
     val params: Map[String, Any] = Map(
-      ""
+      "num_classes" -> 3
     )
 
     val splits: Array[DataFrame] = data.randomSplit(Array(0.6, 0.4), seed = 1234L)
@@ -26,7 +27,7 @@ object LogRegBanditExample {
     val test: DataFrame = splits(1)
 
     // train the MLP bandit model
-    val banditModel: BayesianContextualBandit = BayesianContextualBandit.train(train, "mlp", params)
+    val banditModel: BayesianContextualBandit = BayesianContextualBandit.train(train, "logistic", params)
     val recommendations = test.map(BayesianContextualBandit.reportRecommendation(banditModel))
     recommendations.collect().foreach(println)
   }

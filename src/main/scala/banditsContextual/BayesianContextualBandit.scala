@@ -7,8 +7,6 @@ import org.apache.spark.sql.{DataFrame, Row}
 import scala.util.Random
 
 
-
-
 object BayesianContextualBandit {
 
   val CLASSIFIER = "mlp"
@@ -51,13 +49,13 @@ object BayesianContextualBandit {
     new BayesianContextualBandit(classifier, p)
   }
 
-  def reportRecommendation(banditModel: BayesianContextualBandit)(row: Row): MLPBanditRecommendation = {
+  def reportRecommendation(banditModel: BayesianContextualBandit)(row: Row): ContextualBanditRecommendation = {
     val label: Double = row.getAs[Double](0)
     val features: Vector = row.getAs[Vector](1)
     val posteriorProb: Array[Double] = banditModel.classifier.predict(features)
     val posteriorPayoff: Array[Double] = banditModel.computeExpectedPayoff(features)
     val recommendation: Int = banditModel.recommend(row)
-    MLPBanditRecommendation(label, recommendation, features.toArray.toSeq, posteriorProb.toSeq,posteriorPayoff.toSeq)
+    ContextualBanditRecommendation(label, recommendation, features.toArray.toSeq, posteriorProb.toSeq,posteriorPayoff.toSeq)
   }
 
 }
@@ -115,8 +113,3 @@ class BayesianContextualBandit(val classifier: MulticlassClassifier, val payoff:
 }
 
 
-case class MLPBanditRecommendation(label: Double,
-                                   recommendation: Int,
-                                   features: Seq[Double],
-                                   posteriorProb: Seq[Double],
-                                   posteriorPayoff: Seq[Double])
